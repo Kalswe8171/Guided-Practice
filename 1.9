@@ -1,0 +1,46 @@
+# Kaleb Sweeney
+# Math Calculation Program
+#1.9
+
+# Ask the user for their name and Student ID
+name = input("Enter your name: ")
+student_id = input("Enter your Student ID: ")
+
+# Ask the user for two whole numbers
+num1 = int(input("Enter the first whole number: "))
+num2 = int(input("Enter the second whole number: "))
+
+# Perform three math calculations
+multiplication = num1 * num2
+subtraction = num1 - num2
+
+# Prevent division by zero
+if num2 != 0:
+    division = num1 / num2
+else:
+    division = 0
+
+# Display the results with two decimal places
+print("\n--- Calculation Results ---")
+print(f"Multiplication: {multiplication:.2f}")
+print(f"Subtraction: {subtraction:.2f}")
+
+if num2 != 0:
+    print(f"Division: {division:.2f}")
+else:
+    print("Division: Cannot divide by zero.")
+
+# Determine which number is larger or smaller
+print("\n--- Number Comparison ---")
+
+if num1 > num2:
+    print(f"{num1} is larger than {num2}.")
+elif num1 < num2:
+    print(f"{num1} is smaller than {num2}.")
+else:
+    print(f"{num1} is equal to {num2}.")
+
+# Display the user's name and Student ID
+print("\n--- Student Information ---")
+print(f"Name: {name}")
+print(f"Student ID: {student_id}")

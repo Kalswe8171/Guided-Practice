@@ -1,0 +1,15 @@
+
+from datetime import datetime
+
+# Kaleb Sweeney
+# Display a spreadsheet automation menu and record the user's selection.
+print("Kalswe8171 Spreadsheet Automation Menu")
+print("1. Input Data")
+print("2. View Current Data")
+print("3. Generate Report")
+
+# The next line retrieves the inputted option and stores into the variable called choice.
+choice = input("Enter your option number (1-3): ")
+
+print("You selected option number", choice)
+print("The current date and time is", str(datetime.now()))

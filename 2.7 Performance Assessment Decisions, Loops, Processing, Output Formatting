@@ -1,0 +1,45 @@
+
+# Name: Kaleb Sweeney
+# Description: This program is a number guessing game.
+# It uses if/else statements, a while loop, and a for loop.
+
+# Ask for the user's name and student ID
+userName = input("What is your name? ")
+studentId = input("What is your student ID? ")
+
+print(f"Student ID: {studentId}")
+
+# Set the correct number and counter
+correctNumber = 5
+guessCount = 0
+userGuess = 0
+
+# Ask the user to guess until they are correct
+while userGuess != correctNumber:
+
+    userGuess = int(input("Please guess a number between 1 and 10..."))
+    guessCount += 1
+
+    if userGuess < correctNumber:
+        print("You guessed too low")
+
+    elif userGuess > correctNumber:
+        print("You guessed too high")
+
+    else:
+        print(f"Congratulations, {userName}! You guessed the number in {guessCount} tries!")
+
+# While loop
+print("\nOutput from the 'while' loop:")
+
+whileCounter = 1
+
+while whileCounter <= 5:
+    print(f"{correctNumber} incremented by {whileCounter} is {correctNumber + whileCounter}")
+    whileCounter += 1
+
+# For loop
+print("\nOutput from the 'for' loop:")
+
+for forCounter in range(1, 6):
+    print(f"{correctNumber} incremented by {forCounter} is {correctNumber + forCounter}")

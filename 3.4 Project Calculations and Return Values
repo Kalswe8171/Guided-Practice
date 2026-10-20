@@ -1,0 +1,86 @@
+# Name: Kaleb Sweeney
+# Date: October 20, 2026
+# Description: Spreadsheet Automation Menu that converts
+# temperature, weight, and rainfall measurements.
+
+from datetime import datetime
+
+# Function that converts data based on the selected spreadsheet.
+def convertData(data):
+    if spreadsheetType == "1":
+        return (data - 32) * 5 / 9
+
+    elif spreadsheetType == "2":
+        return data / 2.205
+
+    elif spreadsheetType == "3":
+        return data * 2.54
+
+
+# Function that collects information from the user.
+def getInput():
+    global spreadsheetType
+
+    print("\nSelect a Spreadsheet:")
+    print("1. Temperature (F to C)")
+    print("2. Weight (lbs to Kg)")
+    print("3. Rainfall (in to cm)")
+
+    spreadsheetType = input("Enter spreadsheet number: ")
+
+    # Check for an invalid spreadsheet selection.
+    if spreadsheetType not in ("1", "2", "3"):
+        print("Error: Invalid spreadsheet selection.")
+        return
+
+    numberOfEntries = int(input("How many entries are being entered? "))
+
+    if numberOfEntries <= 0:
+        print("Error: Number of entries must be greater than zero.")
+        return
+
+    # Repeat for the number of entries selected.
+    for entry in range(numberOfEntries):
+
+        print(f"\nEntry {entry + 1}")
+
+        entryDate = input("Enter the date: ")
+
+        if spreadsheetType == "1":
+            dataValue = float(input("Enter temperature in Fahrenheit: "))
+            unit = "C"
+
+        elif spreadsheetType == "2":
+            dataValue = float(input("Enter weight in pounds: "))
+            unit = "Kg"
+
+        else:
+            dataValue = float(input("Enter rainfall in inches: "))
+            unit = "cm"
+
+        # Call convertData with the numerical dataValue argument.
+        # The function returns the converted numerical value.
+        convertedValue = convertData(dataValue)
+
+        print(f"\nThe following was saved at {datetime.now()}:")
+        print(f"Date: {entryDate}")
+        print(f"Original Value: {dataValue}")
+        print(f"Converted Value: {convertedValue:.2f} {unit}")
+
+
+# Main application menu.
+print("Kalswe8171 Spreadsheet Automation Menu")
+print("1. Input Data")
+print("2. View Data")
+print("3. Generate Report")
+print("4. Exit")
+
+# Retrieve the menu selection from the user.
+menuChoice = input("Enter your selection: ")
+
+# Call getInput if the user selected option 1.
+if menuChoice == "1":
+    getInput()
+
+else:
+    print("Error: The chosen functionality is not implemented yet")

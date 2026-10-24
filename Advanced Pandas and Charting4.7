@@ -1,0 +1,63 @@
+print("Student ID: Kalswe8171")
+
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# Step 2: Store 10 student names in an array.
+students = np.array([
+    "John", "Mary", "James", "Sarah", "Michael",
+    "Emily", "David", "Jessica", "Daniel", "Ashley"
+])
+
+subjects = ["Math", "Science"]
+
+# Step 3: Create a MultiIndex for students and subjects.
+studentIndex = pd.MultiIndex.from_product(
+    [students, subjects],
+    names=["Student", "Subject"]
+)
+
+# Step 4: Create a DataFrame containing student grades.
+grades = [
+    94, 88,
+    90, 85,
+    97, 91,
+    88, 83,
+    91, 90,
+    95, 86,
+    93, 89,
+    92, 87,
+    89, 84,
+    93.5, 87
+]
+
+gradeData = pd.DataFrame(
+    {"Grade": grades},
+    index=studentIndex
+)
+
+# Step 5: Display the DataFrame of student grades.
+print("\nClassroom Grades:")
+print(gradeData)
+
+# Step 6: Group grades by subject and calculate the mean.
+subjectAverage = gradeData.groupby(level="Subject")["Grade"].mean()
+
+# Display the mean grade for each subject.
+print("\nAverage Grades by Subject:")
+print(subjectAverage)
+
+# Step 7: Create a vertical bar graph.
+subjectAverage.plot(
+    kind="bar",
+    color="steelblue",
+    legend=False
+)
+
+plt.xlabel("Average Grade by Subject")
+plt.ylabel("")
+plt.ylim(0, 100)
+plt.xticks(rotation=0)
+plt.tight_layout()
+plt.show()

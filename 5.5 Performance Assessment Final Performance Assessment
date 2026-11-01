@@ -1,0 +1,171 @@
+# Name: Kaleb Sweeney
+# Description: Python Final Exam - CSV, Excel, and Charts
+
+import csv
+import os
+from datetime import datetime
+from openpyxl import Workbook
+from openpyxl.chart import PieChart, Reference
+import matplotlib.pyplot as plt
+
+studentId = "Kalswe8171"
+folderPath = r"C:\Users\kaleb\Desktop\Pythonfiles"
+csvPath = os.path.join(folderPath, "final.csv")
+excelPath = os.path.join(folderPath, "final.xlsx")
+
+todayDate = datetime.now().strftime("%B %d, %Y")
+chartTitle = f"{studentId} {todayDate}"
+
+
+def askUser():
+    total = 0
+
+    # This loop runs five times, asks the user for a number,
+    # and adds each number to the accumulated total.
+    for number in range(5):
+        userNumber = float(input(f"Enter number {number + 1}: "))
+        total += userNumber
+
+    print("The total of your five numbers is:", total)
+
+
+def askIncome():
+
+    # This loop runs five times to collect a person's name
+    # and annual income, then appends each entry to final.csv.
+    for number in range(5):
+        personName = input(f"Enter person {number + 1}'s name: ")
+        annualIncome = int(input("Enter annual income: "))
+
+        # Check whether the existing file ends with a new line.
+        # If it does not, add one before writing another record.
+        needsNewline = False
+
+        if os.path.getsize(csvPath) > 0:
+            with open(csvPath, "rb") as checkFile:
+                checkFile.seek(-1, 2)
+                needsNewline = checkFile.read(1) not in (b"\n", b"\r")
+
+        with open(csvPath, "a", newline="") as file:
+            if needsNewline:
+                file.write("\n")
+
+            writer = csv.writer(file)
+            writer.writerow([personName, annualIncome])
+
+    print("Five income records added to final.csv.")
+
+
+def readIncomeData():
+    names = []
+    incomes = []
+
+    with open(csvPath, "r", newline="") as file:
+        reader = csv.reader(file)
+
+        for row in reader:
+            if len(row) < 2:
+                continue
+
+            try:
+                income = int(row[1].strip().replace(",", "").replace("$", ""))
+            except ValueError:
+                # Skip a header row or invalid income.
+                continue
+
+            names.append(row[0].strip())
+            incomes.append(income)
+
+    return names, incomes
+
+
+def excelPie():
+    names, incomes = readIncomeData()
+
+    # Create a new Excel workbook to store the data and chart.
+    wb = Workbook()
+
+    # Select the active worksheet.
+    ws = wb.active
+
+    # Set the worksheet name.
+    ws.title = "Annual Incomes"
+
+    # Create the column headers for the spreadsheet.
+    ws.append(["Name", "Annual Income"])
+
+    # Add each person's name and numeric income to Excel.
+    for name, income in zip(names, incomes):
+        ws.append([name, int(income)])
+
+    # Set column widths to make the data easier to read.
+    ws.column_dimensions["A"].width = 25
+    ws.column_dimensions["B"].width = 20
+
+    # Format income values as currency.
+    for cell in ws["B"][1:]:
+        cell.number_format = '$#,##0'
+
+    # Create a new pie chart object.
+    pie = PieChart()
+
+    # Select the numerical income values for the chart.
+    data = Reference(ws, min_col=2, min_row=1, max_row=ws.max_row)
+
+    # Select the names to be used as labels.
+    labels = Reference(ws, min_col=1, min_row=2, max_row=ws.max_row)
+
+    # Add the income values to the chart, using the first row as a title.
+    pie.add_data(data, titles_from_data=True)
+
+    # Set the names as the pie chart category labels.
+    pie.set_categories(labels)
+
+    # Give the pie chart the required student ID and date title.
+    pie.title = chartTitle
+
+    # Set the chart width and height.
+    pie.width = 18
+    pie.height = 12
+
+    # Place the pie chart at cell D2 on the worksheet.
+    ws.add_chart(pie, "D2")
+
+    # Save the Excel workbook as final.xlsx.
+    wb.save(excelPath)
+
+    print("Excel pie chart saved to:", excelPath)
+
+
+def verticalBar():
+    names, incomes = readIncomeData()
+
+    plt.figure(figsize=(12, 6))
+
+    plt.bar(names, incomes)
+
+    plt.title(chartTitle)
+    plt.xlabel("Names")
+    plt.ylabel("Annual Income ($)")
+
+    plt.xticks(rotation=45, ha="right")
+
+    plt.tight_layout()
+    plt.show()
+
+
+def main():
+    print(chartTitle)
+    print("Python Final Exam")
+    print("--------------------------")
+
+    askUser()
+    askIncome()
+    excelPie()
+    verticalBar()
+
+    print("Program completed successfully.")
+
+
+if __name__ == "__main__":
+    main()

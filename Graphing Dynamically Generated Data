@@ -1,0 +1,320 @@
+# Student ID: Kalswe8171
+# Description: Spreadsheet automation program that saves CSV data,
+# converts measurements, and generates Excel charts.
+
+from datetime import datetime
+import os
+import csv
+from openpyxl import Workbook
+from openpyxl.chart import BarChart, LineChart, Reference
+
+
+# This function converts measurement data based on the selected type.
+def convertData(dataValue):
+    if spreadsheetType == "1":
+        return (dataValue - 32) * 5 / 9
+    elif spreadsheetType == "2":
+        return dataValue / 2.205
+    elif spreadsheetType == "3":
+        return dataValue * 2.54
+    else:
+        raise ValueError("Invalid spreadsheet type.")
+
+
+# This function appends data to a CSV file.
+def insertData(filePath, commaSeparatedData):
+    try:
+        with open(filePath, "a", encoding="utf-8") as csvFile:
+            csvFile.write(commaSeparatedData + "\n")
+        return True
+    except OSError as error:
+        print("Error saving data:", error)
+        return False
+
+
+# This function reads and displays saved CSV data.
+def viewData(filePath):
+    try:
+        with open(filePath, "r", encoding="utf-8") as csvFile:
+            print("\nReading file:", os.path.abspath(filePath))
+            print("--- Saved Data ---")
+            savedData = csvFile.read()
+            print(savedData if savedData else "The file is empty.")
+    except FileNotFoundError:
+        print("ZooData.csv does not exist yet.")
+    except OSError as error:
+        print("Error reading data:", error)
+
+
+# This function collects measurements and saves converted results.
+def getInput():
+    global spreadsheetType
+
+    print("\nChoose the type of data:")
+    print("1. Temperature (Fahrenheit to Celsius)")
+    print("2. Weight (pounds to kilograms)")
+    print("3. Rainfall (inches to centimeters)")
+
+    spreadsheetType = input("Choose type (1-3): ")
+
+    if spreadsheetType not in ("1", "2", "3"):
+        print("Invalid spreadsheet type.")
+        return
+
+    try:
+        numberOfEntries = int(input("How many entries will you enter?"))
+        if numberOfEntries <= 0:
+            print("Please enter a number greater than zero.")
+            return
+    except ValueError:
+        print("Please enter a valid whole number.")
+        return
+
+    spreadsheetNames = {
+        "1": "Temperature (F to C)",
+        "2": "Weight (lbs to kg)",
+        "3": "Rainfall (in to cm)"
+    }
+
+    for entryNumber in range(numberOfEntries):
+        try:
+            print(f"\nEntry {entryNumber + 1}:")
+            entryDate = input("Enter date (MM/DD/YYYY): ")
+            dataValue = float(input("Enter the measurement: "))
+            convertedValue = convertData(dataValue)
+
+            commaSeparatedData = (
+                f"{entryDate},{spreadsheetNames[spreadsheetType]},"
+                f"{dataValue},{convertedValue:.2f}"
+            )
+
+            if insertData("ZooData.csv", commaSeparatedData):
+                print(
+                    f"The following data was saved at "
+                    f"{datetime.now()}: {commaSeparatedData}"
+                )
+
+        except ValueError:
+            print("Invalid number. This entry was not saved.")
+        except OSError as error:
+            print("Could not process this entry:", error)
+
+
+# Function: createChart
+# Arguments:
+# filePath (str): Path to the CSV data file.
+# chartType (str): Type of chart, either "bar" or "line".
+# Return value: None. Creates and saves final.xlsx.
+def createChart(filePath, chartType):
+
+    print("\nChoose the measurement for the report:")
+    print("1. Temperature (Fahrenheit / Celsius)")
+    print("2. Weight (Pounds / Kilograms)")
+    print("3. Rainfall (Inches / Centimeters)")
+
+    measurementChoice = input("Enter choice (1-3): ")
+
+    measurementTypes = {
+        "1": ("Temperature (F to C)", "Fahrenheit", "Celsius"),
+        "2": ("Weight (lbs to kg)", "Pounds", "Kilograms"),
+        "3": ("Rainfall (in to cm)", "Inches", "Centimeters")
+    }
+
+    if measurementChoice not in measurementTypes:
+        print("Invalid measurement choice.")
+        return
+
+    print("\nChoose the data source:")
+    print("1. Initial Data")
+    print("2. Converted Data")
+
+    dataChoice = input("Enter choice (1-2): ")
+
+    if dataChoice not in ("1", "2"):
+        print("Invalid data source.")
+        return
+
+    measurementName, originalUnit, convertedUnit = (
+        measurementTypes[measurementChoice]
+    )
+
+    if dataChoice == "1":
+        selectedUnit = originalUnit
+        valueColumn = 3
+    else:
+        selectedUnit = convertedUnit
+        valueColumn = 4
+
+    try:
+        # Create a new Excel workbook.
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Report Data"
+
+        # Add column headings.
+        ws.append(["Date", "Measurement", "Initial", "Converted"])
+
+        # Open CSV file and extract matching measurements.
+        with open(filePath, "r", newline="", encoding="utf-8") as csvFile:
+            csvReader = csv.reader(csvFile)
+
+            for row in csvReader:
+                if len(row) < 4:
+                    continue
+
+                if row[1].strip() == measurementName:
+                    try:
+                        entryDate = datetime.strptime(
+                            row[0].strip(), "%m/%d/%Y"
+                        )
+                        initialValue = float(row[2])
+                        convertedValue = float(row[3])
+
+                        ws.append([
+                            entryDate,
+                            row[1],
+                            initialValue,
+                            convertedValue
+                        ])
+                    except ValueError:
+                        print("Skipping invalid CSV row:", row)
+
+        lastRow = ws.max_row
+
+        if lastRow < 2:
+            print("No matching data found in the CSV file.")
+            return
+
+        # Format Excel dates and numeric values.
+        for rowNumber in range(2, lastRow + 1):
+            ws.cell(rowNumber, 1).number_format = "mm/dd/yyyy"
+            ws.cell(rowNumber, 3).number_format = "0.00"
+            ws.cell(rowNumber, 4).number_format = "0.00"
+
+        # Adjust column widths.
+        ws.column_dimensions["A"].width = 18
+        ws.column_dimensions["B"].width = 28
+        ws.column_dimensions["C"].width = 18
+        ws.column_dimensions["D"].width = 18
+
+        # Choose the requested chart type.
+        if chartType == "bar":
+            myChart = BarChart()
+            myChart.type = "col"
+            myChart.grouping = "clustered"
+
+        elif chartType == "line":
+            myChart = LineChart()
+            myChart.style = 13
+            myChart.marker = "circle"
+
+        else:
+            print("Invalid chart type.")
+            return
+
+        # Set the chart title using student ID and current date.
+        currentDate = datetime.now().strftime("%m/%d/%Y")
+        myChart.title = f"Kalswe8171 {currentDate}"
+
+        # Set x-axis and y-axis labels.
+        myChart.x_axis.title = "Date"
+        myChart.y_axis.title = selectedUnit
+
+        myChart.width = 18
+        myChart.height = 10
+        myChart.legend = None
+
+        # Select the values, including the heading.
+        myData = Reference(
+            ws,
+            min_col=valueColumn,
+            min_row=1,
+            max_row=lastRow
+        )
+
+        # Select the dates, excluding the heading.
+        myDates = Reference(
+            ws,
+            min_col=1,
+            min_row=2,
+            max_row=lastRow
+        )
+
+        # Add data and date labels to chart.
+        myChart.add_data(myData, titles_from_data=True)
+        myChart.set_categories(myDates)
+
+        # Add chart to Excel worksheet.
+        ws.add_chart(myChart, "F2")
+
+        # Save workbook AFTER inserting the chart.
+        wb.save("final.xlsx")
+
+        print("\nReport generated successfully!")
+        print("File created: final.xlsx")
+        print("Chart type:", chartType)
+        print("Data source:", selectedUnit)
+        print("Number of records:", lastRow - 1)
+        print("Saved at:", os.path.abspath("final.xlsx"))
+
+    except FileNotFoundError:
+        print("CSV file not found. Enter data first.")
+    except PermissionError:
+        print("Close final.xlsx in Excel and try again.")
+    except OSError as error:
+        print("Error generating report:", error)
+
+
+# Function: generateReport
+# Arguments:
+# filePath (str): Path to the CSV data file.
+# Return value: None. Calls createChart to generate a report.
+def generateReport(filePath):
+
+    print("\nGenerate Report")
+    print("1. Bar Chart")
+    print("2. Line Chart")
+
+    graphChoice = input("Choose a chart type (1-2): ")
+
+    if graphChoice == "1":
+        createChart(filePath, "bar")
+    elif graphChoice == "2":
+        createChart(filePath, "line")
+    else:
+        print("Invalid graph choice.")
+
+
+# This function displays the main menu.
+def main():
+
+    print("Kalswe8171 Spreadsheet Automation Menu")
+
+    while True:
+        print("\n1. Input Data")
+        print("2. View Current Data")
+        print("3. Generate Report")
+        print("4. Exit")
+
+        # The next line retrieves the inputted option and
+        # stores it in the variable called choice.
+        choice = input("Enter your option number (1-4): ")
+
+        if choice == "1":
+            getInput()
+
+        elif choice == "2":
+            viewData("ZooData.csv")
+
+        elif choice == "3":
+            generateReport("ZooData.csv")
+
+        elif choice == "4":
+            print("Goodbye!")
+            break
+
+        else:
+            print("Invalid option. Enter 1, 2, 3, or 4.")
+
+
+main()
